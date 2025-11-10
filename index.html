@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Salary Negotiation Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .input-section {
+            margin-bottom: 40px;
+        }
+        
+        .section-title {
+            font-size: 1.4em;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+        
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .input-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            color: #555;
+            font-weight: 500;
+            margin-bottom: 8px;
+            font-size: 0.9em;
+        }
+        
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: all 0.3s;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .results {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            padding: 30px;
+            color: white;
+            margin-top: 30px;
+        }
+        
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .result-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .result-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+        
+        .result-value {
+            font-size: 1.8em;
+            font-weight: bold;
+        }
+        
+        .equity-details {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        
+        .equity-details h3 {
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+        
+        .equity-detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .equity-detail-row:last-child {
+            border-bottom: none;
+        }
+        
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            margin-left: 5px;
+            cursor: help;
+        }
+        
+        .tooltip-icon {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            text-align: center;
+            line-height: 16px;
+            font-size: 12px;
+        }
+        
+        .tooltip-text {
+            visibility: hidden;
+            width: 200px;
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 8px;
+            border-radius: 6px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.85em;
+        }
+        
+        .tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        @media (max-width: 600px) {
+            .content {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 1.8em;
+            }
+            
+            .result-value {
+                font-size: 1.4em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💰 Salary Negotiation Calculator</h1>
+            <p>Calculate your total compensation including equity value</p>
+        </div>
+        
+        <div class="content">
+            <div class="input-section">
+                <h2 class="section-title">Base Compensation</h2>
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label for="baseSalary">Base Salary (Annual)</label>
+                        <input type="number" id="baseSalary" placeholder="150000" min="0">
+                    </div>
+                    <div class="input-group">
+                        <label for="signingBonus">Signing Bonus</label>
+                        <input type="number" id="signingBonus" placeholder="25000" min="0">
+                    </div>
+                    <div class="input-group">
+                        <label for="annualBonus">Annual Bonus (Target %)</label>
+                        <input type="number" id="annualBonus" placeholder="15" min="0" max="100" step="0.1">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="input-section">
+                <h2 class="section-title">Equity Details</h2>
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label for="shares">Number of Shares/Options</label>
+                        <input type="number" id="shares" placeholder="10000" min="0">
+                    </div>
+                    <div class="input-group">
+                        <label for="strikePrice">
+                            Strike Price (per share)
+                            <span class="tooltip">
+                                <span class="tooltip-icon">?</span>
+                                <span class="tooltip-text">The price you pay to exercise each option</span>
+                            </span>
+                        </label>
+                        <input type="number" id="strikePrice" placeholder="1.50" min="0" step="0.01">
+                    </div>
+                    <div class="input-group">
+                        <label for="preferredPrice">
+                            Preferred Price (per share)
+                            <span class="tooltip">
+                                <span class="tooltip-icon">?</span>
+                                <span class="tooltip-text">Current value per share (409A or last funding round)</span>
+                            </span>
+                        </label>
+                        <input type="number" id="preferredPrice" placeholder="10.00" min="0" step="0.01">
+                    </div>
+                    <div class="input-group">
+                        <label for="outstandingShares">
+                            Total Outstanding Shares
+                            <span class="tooltip">
+                                <span class="tooltip-icon">?</span>
+                                <span class="tooltip-text">Total shares in the company (fully diluted)</span>
+                            </span>
+                        </label>
+                        <input type="number" id="outstandingShares" placeholder="100000000" min="0">
+                    </div>
+                    <div class="input-group">
+                        <label for="vestingYears">Vesting Period (Years)</label>
+                        <input type="number" id="vestingYears" placeholder="4" min="1" max="10" value="4">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="results" id="results">
+                <div class="results-grid">
+                    <div class="result-card">
+                        <div class="result-label">Year 1 Total Comp</div>
+                        <div class="result-value" id="year1Total">$0</div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-label">4-Year Total Comp</div>
+                        <div class="result-value" id="year4Total">$0</div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-label">Annual Average (4yr)</div>
+                        <div class="result-value" id="yearAverage">$0</div>
+                    </div>
+                </div>
+                
+                <div class="equity-details">
+                    <h3>Equity Breakdown</h3>
+                    <div class="equity-detail-row">
+                        <span>Current Equity Value</span>
+                        <span id="equityValue">$0</span>
+                    </div>
+                    <div class="equity-detail-row">
+                        <span>Exercise Cost</span>
+                        <span id="exerciseCost">$0</span>
+                    </div>
+                    <div class="equity-detail-row">
+                        <span>Net Equity Value</span>
+                        <span id="netEquityValue">$0</span>
+                    </div>
+                    <div class="equity-detail-row">
+                        <span>Ownership Percentage</span>
+                        <span id="ownershipPercent">0.000%</span>
+                    </div>
+                    <div class="equity-detail-row">
+                        <span>Annual Vested Value</span>
+                        <span id="annualVestedValue">$0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0,
+            }).format(amount);
+        }
+        
+        function formatPercent(value) {
+            return value.toFixed(4) + '%';
+        }
+        
+        function calculateCompensation() {
+            // Get input values
+            const baseSalary = parseFloat(document.getElementById('baseSalary').value) || 0;
+            const signingBonus = parseFloat(document.getElementById('signingBonus').value) || 0;
+            const annualBonusPercent = parseFloat(document.getElementById('annualBonus').value) || 0;
+            const shares = parseFloat(document.getElementById('shares').value) || 0;
+            const strikePrice = parseFloat(document.getElementById('strikePrice').value) || 0;
+            const preferredPrice = parseFloat(document.getElementById('preferredPrice').value) || 0;
+            const outstandingShares = parseFloat(document.getElementById('outstandingShares').value) || 0;
+            const vestingYears = parseFloat(document.getElementById('vestingYears').value) || 4;
+            
+            // Calculate bonus
+            const annualBonusAmount = baseSalary * (annualBonusPercent / 100);
+            
+            // Calculate equity values
+            const totalEquityValue = shares * preferredPrice;
+            const totalExerciseCost = shares * strikePrice;
+            const netEquityValue = totalEquityValue - totalExerciseCost;
+            const annualVestedValue = netEquityValue / vestingYears;
+            const ownershipPercent = outstandingShares > 0 ? (shares / outstandingShares) * 100 : 0;
+            
+            // Calculate total compensation
+            const year1Total = baseSalary + signingBonus + annualBonusAmount + annualVestedValue;
+            const year4Total = (baseSalary * 4) + signingBonus + (annualBonusAmount * 4) + netEquityValue;
+            const yearAverage = year4Total / 4;
+            
+            // Update display
+            document.getElementById('year1Total').textContent = formatCurrency(year1Total);
+            document.getElementById('year4Total').textContent = formatCurrency(year4Total);
+            document.getElementById('yearAverage').textContent = formatCurrency(yearAverage);
+            document.getElementById('equityValue').textContent = formatCurrency(totalEquityValue);
+            document.getElementById('exerciseCost').textContent = formatCurrency(totalExerciseCost);
+            document.getElementById('netEquityValue').textContent = formatCurrency(netEquityValue);
+            document.getElementById('ownershipPercent').textContent = formatPercent(ownershipPercent);
+            document.getElementById('annualVestedValue').textContent = formatCurrency(annualVestedValue);
+        }
+        
+        // Add event listeners to all inputs
+        const inputs = document.querySelectorAll('input');
+        inputs.forEach(input => {
+            input.addEventListener('input', calculateCompensation);
+        });
+        
+        // Initial calculation
+        calculateCompensation();
+    </script>
+</body>
+</html>
