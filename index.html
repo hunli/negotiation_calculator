@@ -272,23 +272,53 @@
                         <label for="vestingYears">Vesting Period (Years)</label>
                         <input type="number" id="vestingYears" placeholder="4" min="1" max="10" value="4">
                     </div>
+                    <div class="input-group">
+                        <label for="targetOwnership">
+                            Target Ownership %
+                            <span class="tooltip">
+                                <span class="tooltip-icon">?</span>
+                                <span class="tooltip-text">Set a target ownership % to calculate required shares</span>
+                            </span>
+                        </label>
+                        <input type="number" id="targetOwnership" placeholder="0.01" min="0" max="100" step="0.0001">
+                    </div>
                 </div>
             </div>
             
             <div class="results" id="results">
-                <div class="results-grid">
+                <div class="results-grid" style="grid-template-columns: repeat(3, 1fr); gap: 15px;">
+                    <!-- Cash Compensation Row -->
                     <div class="result-card">
-                        <div class="result-label">Year 1 Total Comp</div>
+                        <div class="result-label">Cash Only - Year 1</div>
+                        <div class="result-value" id="cashYear1">$0</div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-label">Cash Only - 4yr Avg</div>
+                        <div class="result-value" id="cashAverage">$0</div>
+                    </div>
+                    <div style="grid-column: 3;"></div>
+                    
+                    <!-- Equity Row -->
+                    <div class="result-card">
+                        <div class="result-label">Equity Only - Year 1</div>
+                        <div class="result-value" id="equityYear1">$0</div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-label">Equity Only - 4yr Avg</div>
+                        <div class="result-value" id="equityAverage">$0</div>
+                    </div>
+                    <div style="grid-column: 3;"></div>
+                    
+                    <!-- Total Compensation Row -->
+                    <div class="result-card" style="background: rgba(255, 255, 255, 0.2);">
+                        <div class="result-label"><strong>Total - Year 1</strong></div>
                         <div class="result-value" id="year1Total">$0</div>
                     </div>
-                    <div class="result-card">
-                        <div class="result-label">4-Year Total Comp</div>
-                        <div class="result-value" id="year4Total">$0</div>
+                    <div class="result-card" style="background: rgba(255, 255, 255, 0.2);">
+                        <div class="result-label"><strong>Total - 4yr Average</strong></div>
+                        <div class="result-value" id="year4Average">$0</div>
                     </div>
-                    <div class="result-card">
-                        <div class="result-label">Annual Average (4yr)</div>
-                        <div class="result-value" id="yearAverage">$0</div>
-                    </div>
+                    <div style="grid-column: 3;"></div>
                 </div>
                 
                 <div class="equity-details">
@@ -309,6 +339,14 @@
                         <span>Ownership Percentage</span>
                         <span id="ownershipPercent">0.000%</span>
                     </div>
+                    <div class="equity-detail-row" id="targetSharesRow" style="display: none; background: rgba(255, 255, 255, 0.1); padding: 10px; border-radius: 5px; margin-top: 10px;">
+                        <span>Shares Needed for Target %</span>
+                        <span id="targetShares" style="font-weight: bold;">0</span>
+                    </div>
+                    <div class="equity-detail-row" id="additionalSharesRow" style="display: none; color: #90EE90;">
+                        <span>Additional Shares Needed</span>
+                        <span id="additionalShares" style="font-weight: bold;">0</span>
+                    </div>
                     <div class="equity-detail-row">
                         <span>Annual Vested Value</span>
                         <span id="annualVestedValue">$0</span>
@@ -328,20 +366,45 @@
             }).format(amount);
         }
         
+        function formatNumber(num) {
+            return new Intl.NumberFormat('en-US').format(num);
+        }
+        
         function formatPercent(value) {
             return value.toFixed(4) + '%';
         }
         
+        function formatInputValue(input) {
+            let value = input.value.replace(/,/g, '');
+            if (value && !isNaN(value)) {
+                const num = parseFloat(value);
+                if (input.step && parseFloat(input.step) < 1) {
+                    // For decimal inputs (like strike price), keep decimals
+                    input.value = value;
+                } else {
+                    // For whole number inputs, add commas
+                    const parts = value.split('.');
+                    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                    input.value = parts.join('.');
+                }
+            }
+        }
+        
+        function parseInputValue(input) {
+            return parseFloat(input.value.replace(/,/g, '')) || 0;
+        }
+        
         function calculateCompensation() {
             // Get input values
-            const baseSalary = parseFloat(document.getElementById('baseSalary').value) || 0;
-            const signingBonus = parseFloat(document.getElementById('signingBonus').value) || 0;
-            const annualBonusPercent = parseFloat(document.getElementById('annualBonus').value) || 0;
-            const shares = parseFloat(document.getElementById('shares').value) || 0;
-            const strikePrice = parseFloat(document.getElementById('strikePrice').value) || 0;
-            const preferredPrice = parseFloat(document.getElementById('preferredPrice').value) || 0;
-            const outstandingShares = parseFloat(document.getElementById('outstandingShares').value) || 0;
-            const vestingYears = parseFloat(document.getElementById('vestingYears').value) || 4;
+            const baseSalary = parseInputValue(document.getElementById('baseSalary'));
+            const signingBonus = parseInputValue(document.getElementById('signingBonus'));
+            const annualBonusPercent = parseInputValue(document.getElementById('annualBonus'));
+            const shares = parseInputValue(document.getElementById('shares'));
+            const strikePrice = parseInputValue(document.getElementById('strikePrice'));
+            const preferredPrice = parseInputValue(document.getElementById('preferredPrice'));
+            const outstandingShares = parseInputValue(document.getElementById('outstandingShares'));
+            const vestingYears = parseInputValue(document.getElementById('vestingYears'));
+            const targetOwnership = parseInputValue(document.getElementById('targetOwnership'));
             
             // Calculate bonus
             const annualBonusAmount = baseSalary * (annualBonusPercent / 100);
@@ -353,15 +416,43 @@
             const annualVestedValue = netEquityValue / vestingYears;
             const ownershipPercent = outstandingShares > 0 ? (shares / outstandingShares) * 100 : 0;
             
+            // Calculate target shares if target ownership is specified
+            let targetShares = 0;
+            let additionalSharesNeeded = 0;
+            if (targetOwnership > 0 && outstandingShares > 0) {
+                targetShares = Math.ceil((targetOwnership / 100) * outstandingShares);
+                additionalSharesNeeded = Math.max(0, targetShares - shares);
+                
+                // Show the target shares rows
+                document.getElementById('targetSharesRow').style.display = 'flex';
+                document.getElementById('additionalSharesRow').style.display = 'flex';
+                document.getElementById('targetShares').textContent = formatNumber(targetShares);
+                document.getElementById('additionalShares').textContent = formatNumber(additionalSharesNeeded);
+            } else {
+                // Hide the target shares rows
+                document.getElementById('targetSharesRow').style.display = 'none';
+                document.getElementById('additionalSharesRow').style.display = 'none';
+            }
+            
+            // Calculate cash compensation (base + signing + annual bonus)
+            const cashYear1 = baseSalary + signingBonus + annualBonusAmount;
+            const cashAverage = baseSalary + annualBonusAmount + (signingBonus / 4);
+            
+            // Calculate equity compensation
+            const equityYear1 = annualVestedValue;
+            const equityAverage = annualVestedValue;
+            
             // Calculate total compensation
-            const year1Total = baseSalary + signingBonus + annualBonusAmount + annualVestedValue;
-            const year4Total = (baseSalary * 4) + signingBonus + (annualBonusAmount * 4) + netEquityValue;
-            const yearAverage = year4Total / 4;
+            const year1Total = cashYear1 + equityYear1;
+            const year4Average = cashAverage + equityAverage;
             
             // Update display
+            document.getElementById('cashYear1').textContent = formatCurrency(cashYear1);
+            document.getElementById('cashAverage').textContent = formatCurrency(cashAverage);
+            document.getElementById('equityYear1').textContent = formatCurrency(equityYear1);
+            document.getElementById('equityAverage').textContent = formatCurrency(equityAverage);
             document.getElementById('year1Total').textContent = formatCurrency(year1Total);
-            document.getElementById('year4Total').textContent = formatCurrency(year4Total);
-            document.getElementById('yearAverage').textContent = formatCurrency(yearAverage);
+            document.getElementById('year4Average').textContent = formatCurrency(year4Average);
             document.getElementById('equityValue').textContent = formatCurrency(totalEquityValue);
             document.getElementById('exerciseCost').textContent = formatCurrency(totalExerciseCost);
             document.getElementById('netEquityValue').textContent = formatCurrency(netEquityValue);
@@ -372,7 +463,22 @@
         // Add event listeners to all inputs
         const inputs = document.querySelectorAll('input');
         inputs.forEach(input => {
-            input.addEventListener('input', calculateCompensation);
+            input.addEventListener('input', function(e) {
+                calculateCompensation();
+            });
+            
+            // Format on blur for better UX
+            input.addEventListener('blur', function(e) {
+                formatInputValue(this);
+            });
+            
+            // Handle focus to allow easier editing
+            input.addEventListener('focus', function(e) {
+                // Remove commas when focused for easier editing
+                if (this.step && parseFloat(this.step) >= 1) {
+                    this.value = this.value.replace(/,/g, '');
+                }
+            });
         });
         
         // Initial calculation
