@@ -87,6 +87,11 @@
             transition: all 0.3s;
         }
         
+        input::placeholder {
+            color: #c0c0c0;
+            font-style: italic;
+        }
+        
         input:focus {
             outline: none;
             border-color: #667eea;
@@ -218,15 +223,15 @@
                 <div class="input-grid">
                     <div class="input-group">
                         <label for="baseSalary">Base Salary (Annual)</label>
-                        <input type="text" id="baseSalary" placeholder="150000">
+                        <input type="text" id="baseSalary" placeholder="e.g. 150000">
                     </div>
                     <div class="input-group">
                         <label for="signingBonus">Signing Bonus</label>
-                        <input type="text" id="signingBonus" placeholder="25000">
+                        <input type="text" id="signingBonus" placeholder="e.g. 25000">
                     </div>
                     <div class="input-group">
                         <label for="annualBonus">Annual Bonus (Target %)</label>
-                        <input type="text" id="annualBonus" placeholder="15">
+                        <input type="text" id="annualBonus" placeholder="e.g. 15">
                     </div>
                 </div>
             </div>
@@ -236,7 +241,7 @@
                 <div class="input-grid">
                     <div class="input-group">
                         <label for="shares">Number of Shares/Options</label>
-                        <input type="text" id="shares" placeholder="10000">
+                        <input type="text" id="shares" placeholder="e.g. 10000">
                     </div>
                     <div class="input-group">
                         <label for="strikePrice">
@@ -246,7 +251,7 @@
                                 <span class="tooltip-text">The price you pay to exercise each option</span>
                             </span>
                         </label>
-                        <input type="text" id="strikePrice" placeholder="1.50" step="0.01">
+                        <input type="text" id="strikePrice" placeholder="e.g. 1.50" step="0.01">
                     </div>
                     <div class="input-group">
                         <label for="preferredPrice">
@@ -256,7 +261,7 @@
                                 <span class="tooltip-text">Current value per share (409A or last funding round)</span>
                             </span>
                         </label>
-                        <input type="text" id="preferredPrice" placeholder="10.00" step="0.01">
+                        <input type="text" id="preferredPrice" placeholder="e.g. 10.00" step="0.01">
                     </div>
                     <div class="input-group">
                         <label for="outstandingShares">
@@ -266,11 +271,11 @@
                                 <span class="tooltip-text">Total shares in the company (fully diluted)</span>
                             </span>
                         </label>
-                        <input type="text" id="outstandingShares" placeholder="100000000">
+                        <input type="text" id="outstandingShares" placeholder="e.g. 100000000">
                     </div>
                     <div class="input-group">
                         <label for="vestingYears">Vesting Period (Years)</label>
-                        <input type="text" id="vestingYears" placeholder="4" value="4">
+                        <input type="text" id="vestingYears" placeholder="e.g. 4" value="4">
                     </div>
                     <div class="input-group">
                         <label for="targetOwnership">
@@ -280,7 +285,7 @@
                                 <span class="tooltip-text">Auto-calculates based on shares, or set manually to see required shares</span>
                             </span>
                         </label>
-                        <input type="text" id="targetOwnership" placeholder="0.01" step="0.0001">
+                        <input type="text" id="targetOwnership" placeholder="e.g. 0.01" step="0.0001">
                     </div>
                 </div>
             </div>
