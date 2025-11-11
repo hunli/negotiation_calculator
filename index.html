@@ -307,10 +307,12 @@
                     <div class="result-card">
                         <div class="result-label">Equity Only - Yearly</div>
                         <div class="result-value" id="equityYear1">$0</div>
+                        <div style="font-size: 0.8em; color: #90EE90; margin-top: 5px;" id="equityYearlyIncrease"></div>
                     </div>
                     <div class="result-card">
                         <div class="result-label">Equity Only - Total</div>
                         <div class="result-value" id="equityAverage">$0</div>
+                        <div style="font-size: 0.8em; color: #90EE90; margin-top: 5px;" id="equityTotalIncrease"></div>
                     </div>
                     <div style="grid-column: 3;"></div>
                     
@@ -318,10 +320,12 @@
                     <div class="result-card" style="background: rgba(255, 255, 255, 0.2);">
                         <div class="result-label"><strong>Total - Year 1</strong></div>
                         <div class="result-value" id="year1Total">$0</div>
+                        <div style="font-size: 0.8em; color: #90EE90; margin-top: 5px;" id="totalYear1Increase"></div>
                     </div>
                     <div class="result-card" style="background: rgba(255, 255, 255, 0.2);">
                         <div class="result-label"><strong>Total - 4yr Average</strong></div>
                         <div class="result-value" id="year4Average">$0</div>
+                        <div style="font-size: 0.8em; color: #90EE90; margin-top: 5px;" id="totalAverageIncrease"></div>
                     </div>
                     <div style="grid-column: 3;"></div>
                 </div>
@@ -409,12 +413,51 @@
             const annualVestedValue = netEquityValue / vestingYears;
             const ownershipPercent = outstandingShares > 0 ? (shares / outstandingShares) * 100 : 0;
             
+            // Calculate equity compensation
+            const equityYear1 = annualVestedValue;
+            const equityTotal = netEquityValue;
+            
+            // Calculate cash compensation (base + signing + annual bonus)
+            const cashYear1 = baseSalary + signingBonus + annualBonusAmount;
+            const cashAverage = baseSalary + annualBonusAmount + (signingBonus / 4);
+            
+            // Calculate total compensation
+            const year1Total = cashYear1 + equityYear1;
+            const year4Average = cashAverage + equityYear1;
+            
             // Calculate target shares if target ownership is specified
             let targetShares = 0;
             let additionalSharesNeeded = 0;
+            
             if (targetOwnership > 0 && outstandingShares > 0) {
                 targetShares = Math.ceil((targetOwnership / 100) * outstandingShares);
                 additionalSharesNeeded = Math.max(0, targetShares - shares);
+                
+                // Calculate target equity values if there are additional shares needed
+                if (additionalSharesNeeded > 0) {
+                    const targetTotalEquityValue = targetShares * preferredPrice;
+                    const targetTotalExerciseCost = targetShares * strikePrice;
+                    const targetNetEquityValue = targetTotalEquityValue - targetTotalExerciseCost;
+                    const targetAnnualVestedValue = targetNetEquityValue / vestingYears;
+                    
+                    // Calculate increases
+                    const yearlyIncrease = targetAnnualVestedValue - equityYear1;
+                    const totalIncrease = targetNetEquityValue - equityTotal;
+                    
+                    // Show increases in the equity boxes
+                    document.getElementById('equityYearlyIncrease').textContent = `+${formatCurrency(yearlyIncrease)} with target`;
+                    document.getElementById('equityTotalIncrease').textContent = `+${formatCurrency(totalIncrease)} with target`;
+                    
+                    // Show increases in total comp boxes
+                    document.getElementById('totalYear1Increase').textContent = `+${formatCurrency(yearlyIncrease)} with target`;
+                    document.getElementById('totalAverageIncrease').textContent = `+${formatCurrency(yearlyIncrease)} with target`;
+                } else {
+                    // Clear increase displays
+                    document.getElementById('equityYearlyIncrease').textContent = '';
+                    document.getElementById('equityTotalIncrease').textContent = '';
+                    document.getElementById('totalYear1Increase').textContent = '';
+                    document.getElementById('totalAverageIncrease').textContent = '';
+                }
                 
                 // Show the target shares rows
                 document.getElementById('targetSharesRow').style.display = 'flex';
@@ -422,22 +465,14 @@
                 document.getElementById('targetShares').textContent = formatNumber(targetShares);
                 document.getElementById('additionalShares').textContent = formatNumber(additionalSharesNeeded);
             } else {
-                // Hide the target shares rows
+                // Hide the target shares rows and clear increases
                 document.getElementById('targetSharesRow').style.display = 'none';
                 document.getElementById('additionalSharesRow').style.display = 'none';
+                document.getElementById('equityYearlyIncrease').textContent = '';
+                document.getElementById('equityTotalIncrease').textContent = '';
+                document.getElementById('totalYear1Increase').textContent = '';
+                document.getElementById('totalAverageIncrease').textContent = '';
             }
-            
-            // Calculate cash compensation (base + signing + annual bonus)
-            const cashYear1 = baseSalary + signingBonus + annualBonusAmount;
-            const cashAverage = baseSalary + annualBonusAmount + (signingBonus / 4);
-            
-            // Calculate equity compensation
-            const equityYear1 = annualVestedValue;
-            const equityTotal = netEquityValue;
-            
-            // Calculate total compensation
-            const year1Total = cashYear1 + equityYear1;
-            const year4Average = cashAverage + equityYear1;
             
             // Update display
             document.getElementById('cashYear1').textContent = formatCurrency(cashYear1);
